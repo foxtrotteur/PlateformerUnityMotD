@@ -11,7 +11,7 @@ public class RobotControllerScript : MonoBehaviour {
 
 	bool grounded = false;
 	public Transform groundCheck;
-	float groundRadius = 0.2f;
+	float groundRadius = 0.1f;
 	public LayerMask whatIsGround;
 	public float jumpForce = 700f;
 
@@ -20,6 +20,17 @@ public class RobotControllerScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		anim = GetComponent<Animator> ();
+	}
+
+	void OnCollisionEnter2D(Collision2D coll) {
+
+
+		if(coll.gameObject.tag == "BlocCoté" && !grounded){
+			Debug.Log ("COLISION !!!!!");
+			GetComponent<Rigidbody2D>().velocity = new Vector2(0,1);
+			anim.SetFloat ("Speed",0f);
+		}
+		
 	}
 	
 	// Update is called once per frame
@@ -32,14 +43,14 @@ public class RobotControllerScript : MonoBehaviour {
 			doubleJump  = false;
 		}
 
-		anim.SetFloat ("vSpeed", rigidbody2D.velocity.y);
+		anim.SetFloat ("vSpeed", GetComponent<Rigidbody2D>().velocity.y);
 
 
 		float move = Input.GetAxis("Horizontal");
 
 		anim.SetFloat ("Speed",Mathf.Abs(move));
 
-		rigidbody2D.velocity = new Vector2(move * maxSpeed, rigidbody2D.velocity.y);
+		GetComponent<Rigidbody2D>().velocity = new Vector2(move * maxSpeed, GetComponent<Rigidbody2D>().velocity.y);
 
 		if (move > 0 && !facingRight) {
 			Flip();
@@ -49,9 +60,9 @@ public class RobotControllerScript : MonoBehaviour {
 	}
 
 	void Update(){
-		if ((grounded  || !doubleJump) && Input.GetKeyDown (KeyCode.Space)) {
+		if ((grounded  || !doubleJump) && Input.GetKeyDown (KeyCode.UpArrow)) {
 			anim.SetBool("Ground",false);
-			rigidbody2D.AddForce(new Vector2(0, jumpForce));
+			GetComponent<Rigidbody2D>().AddForce(new Vector2(0, jumpForce));
 			if(!doubleJump && !grounded){
 				doubleJump = true;
 			}
