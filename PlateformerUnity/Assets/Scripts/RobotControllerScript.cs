@@ -22,17 +22,6 @@ public class RobotControllerScript : MonoBehaviour {
 		anim = GetComponent<Animator> ();
 	}
 
-	void OnCollisionEnter2D(Collision2D coll) {
-
-
-		if(coll.gameObject.tag == "BlocCoté" && !grounded){
-			Debug.Log ("COLISION !!!!!");
-			GetComponent<Rigidbody2D>().velocity = new Vector2(0,1);
-			anim.SetFloat ("Speed",0f);
-		}
-		
-	}
-	
 	// Update is called once per frame
 	void FixedUpdate () {
 
