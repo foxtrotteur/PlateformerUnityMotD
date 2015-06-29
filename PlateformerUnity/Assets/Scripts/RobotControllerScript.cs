@@ -49,7 +49,7 @@ public class RobotControllerScript : MonoBehaviour {
 	}
 
 	void Update(){
-		if ((grounded  || !doubleJump) && Input.GetKeyDown (KeyCode.UpArrow)) {
+		if ((grounded  || !doubleJump) && ((Input.GetKeyDown (KeyCode.UpArrow))||Input.GetKeyDown(KeyCode.Joystick1Button0))) {
 			anim.SetBool("Ground",false);
 			GetComponent<Rigidbody2D>().AddForce(new Vector2(0, jumpForce));
 			if(!doubleJump && !grounded){
