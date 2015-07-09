@@ -3,8 +3,8 @@ using System.Collections;
 
 public class GenerateLevel : MonoBehaviour {
 
-    public static int width = 64;
-    public static int height = 32;
+    public static int width = 32;
+    public static int height = 40;
     public int numberOfSteps = 4;
     public int deathLimit = 4;
     public int birthLimit = 5;
