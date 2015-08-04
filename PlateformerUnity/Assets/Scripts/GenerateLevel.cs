@@ -29,7 +29,7 @@ public class GenerateLevel : MonoBehaviour {
     // Use this for initialization
 	void Start () {
         // bool[,] finalMap = generateMap(map);
-        int nbDoors = 0;
+        //int nbDoors = 0;
         int[,] finalMap = generateMap(map);
 
         float nextPosition_x = 0.0f;

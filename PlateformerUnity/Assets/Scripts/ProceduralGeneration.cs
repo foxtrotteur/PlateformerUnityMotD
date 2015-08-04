@@ -7,46 +7,66 @@ public class ProceduralGeneration : MonoBehaviour {
 
     public static int      width              = 40;
     public static int      height             = 32;
-    public int      chanceToStartAlive = 45;
-    private static int[,] level              = new int[width,height];
+    public int             chanceToStartAlive = 45;
+    private static int[,]  level              = new int[width,height];
     public float           blocDimension      = 0.75f;
-    private int     entreX;
-    private int     entreY;
-    private int     sortieX;
-    private int     sortieY;
-    private bool hasPath;
+    private int            entreX;
+    private int            entreY;
+    private int            sortieX;
+    private int            sortieY;
+    private bool           hasPath;
+    public int             deathLimit         = 4;
+    public int             birthLimit         = 5;
     
 	void Start () {
-        
+        createMap();
+        placeDoors();
         level = initialiseMap(level);
-        placeDoors(level);
-
-        correctPath(entreX, entreY, null);
-        Debug.Log("la matrice est correct : " + hasPath);
+        do
+        {
+            level = doSimulationStep(level);
+            correctPath(entreX, entreY, null);
+        } while (!hasPath);
 
         displayLevel();
 
 	}
+
+    private void createMap()
+    {
+        level = new int[width, height];
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                if ((i == 0)||(j == 0)||(i == width - 1)||(j== height - 1)) {
+                    level[i, j] = BlocConstant.BLOC_NUMBER;
+                }
+            }
+        }
+    }
 
     private void displayLevel()
     {
 
         float nextPosition_x = 0.0f;
         float nextPosition_y = 0.0f;
-        for (int i = 0; i < width - 1; i++)
+        for (int i = 0; i < width; i++)
         {
-            for (int j = 0; j < height - 1; j++)
+            for (int j = 0; j < height; j++)
             {
-                if (level[i, j] == 1)
+                if (level[i, j] == BlocConstant.BLOC_NUMBER)
                 {
-                    Instantiate(Resources.Load("prefabBloc_13"), new Vector3(nextPosition_x, nextPosition_y, 0), Quaternion.Euler(0, 0, 0));
+                    Instantiate(Resources.Load(BlocConstant.BLOC_NAME), new Vector3(nextPosition_x, nextPosition_y, 0), Quaternion.Euler(0, 0, 0));
                 }
-                if (level[i, j] == 2)
+                if (level[i, j] == BlocConstant.ENTER_NUMBER)
                 {   
-                    if(i == entreX && j == entreY){
-                        Instantiate(Resources.Load("Character"), new Vector3(nextPosition_x, nextPosition_y, 0), Quaternion.Euler(0, 0, 0));
-                    }
-                    Instantiate(Resources.Load("exitPrefab"), new Vector3(nextPosition_x, nextPosition_y, 0), Quaternion.Euler(0, 0, 0));
+                    Instantiate(Resources.Load("Character"), new Vector3(nextPosition_x, nextPosition_y, 0), Quaternion.Euler(0, 0, 0));
+                    Instantiate(Resources.Load(BlocConstant.ENTER_NAME), new Vector3(nextPosition_x, nextPosition_y, 0), Quaternion.Euler(0, 0, 0));
+                }
+                if (level[i, j] == BlocConstant.EXIT_NUMBER)
+                {
+                    Instantiate(Resources.Load(BlocConstant.EXIT_NAME), new Vector3(nextPosition_x, nextPosition_y, 0), Quaternion.Euler(0, 0, 0));
                 }
                 nextPosition_y -= blocDimension;
             }
@@ -56,20 +76,15 @@ public class ProceduralGeneration : MonoBehaviour {
     }
 
     private void correctPath(int entryPointX, int entryPointY, int[,] listDejaVu) {
-        // Instanciation de la matrice du déjà vu (seulement pour le premier loop)
         if (listDejaVu == null) {
             listDejaVu = new int[width,height];
         }
-        // Mettre à jour la matrice des déjà vu
-        listDejaVu[entryPointX,entryPointY] = 1;
-        // Si on arrive sur la sortie ou que la sortie est déjà trouvé, on arrête les recherches et on dis qu'on a trouvé
+        listDejaVu[entryPointX,entryPointY] = BlocConstant.BLOC_NUMBER;
         if (((entryPointX == sortieX) && (entryPointY == sortieY)) || hasPath) {
             hasPath = true;
         } else {
-            // On cherche les voisins atteignable (haut bas gauche droite)
             List<Coordonnee> listCoordonne = getVoisinAtteignable(entryPointX, entryPointY, listDejaVu);
             foreach (Coordonnee coordonne in listCoordonne) {
-                // et pour chaque on relance la recherche
                 correctPath(coordonne.getX(), coordonne.getY(), listDejaVu);
             }
         }
@@ -85,21 +100,15 @@ public class ProceduralGeneration : MonoBehaviour {
                 int neighbour_x = entryPointX + i;
                 int neighbour_y = entryPointY + j;
 
-                // If we're looking at the middle point
                 if (Math.Abs(i) == Math.Abs(j))
                 {
-                    // Do nothing
                 }
-                // In case the index we're looking at it off the edge of map
                 else if ((neighbour_x < 0) || (neighbour_y < 0) || (neighbour_x >= width) || (neighbour_y >= height))
                 {
                 }
-                // Otherwise a normal check of the neighbour
                 else if ((level[neighbour_x,neighbour_y] != 1) && (listDejaVu[neighbour_x,neighbour_y] == 0))
                 {
-                    Coordonnee toAdd = new Coordonnee();
-                    toAdd.setX(neighbour_x);
-                    toAdd.setY(neighbour_y);
+                    Coordonnee toAdd = new Coordonnee(neighbour_x, neighbour_y);
                     result.Add(toAdd);
                 }
             }
@@ -107,13 +116,14 @@ public class ProceduralGeneration : MonoBehaviour {
         return result;
     }
 
-    // Method to initialize the matrix the first time.
     private int[,] initialiseMap(int[,] map) {
-        Debug.Log("constructing matrice");
-        for (int i = 0; i < (width - 1); i++) {
-            for (int j = 0; j < (height - 1); j++) {
-                if ((UnityEngine.Random.Range(0,100)) < chanceToStartAlive) {
-                    map[i,j] = 1;
+        for (int i = 1; i < (width-1); i++) {
+            for (int j = 1; j < (height-1); j++) {
+                if (map[i, j] == 0)
+                {
+                    if ((UnityEngine.Random.Range(0,100)) < chanceToStartAlive) {
+                        map[i,j] = BlocConstant.BLOC_NUMBER;
+                    }
                 }
             }
         }
@@ -121,39 +131,136 @@ public class ProceduralGeneration : MonoBehaviour {
         return map;
     }
 
-    // Method to place objects in the world
-    private void placeDoors(int[,] finalMap) {
-        Debug.Log("placing door");
-        int nbDoor = 0;
+    private void placeDoors() {
+        Coordonnee entryChoice = new Coordonnee(UnityEngine.Random.Range(1, 4), UnityEngine.Random.Range(1, 4));
+        int[,] map = new int[4,4];
+        List<Coordonnee> exitChoice = getNotVoisinAtSomeDistance(map, 4, 4, entryChoice, 2, 0);
+        
+        int choice = UnityEngine.Random.Range(0,exitChoice.Count);
+        Coordonnee exitCoordonne = exitChoice[choice];
+        placeEntryDoors(entryChoice);
+        placeExitDoors(exitCoordonne);
+    }
 
-        do {
-            // Entry Door
-            for (int i = 1; i < (width - 2); i++) {
-                for (int j = 1; j < (height - 2); j++) {
-                    if ((finalMap[i,j] == 0) & (finalMap[i,j - 1] == 0) & (finalMap[i,j + 1] == 1)) {
-                        if (nbDoor < 2) {
-                            if ((UnityEngine.Random.Range(0, 100)) < 5)
-                            {
-                                finalMap[i,j] = 2;
-                                nbDoor++;
-                                if (nbDoor == 1) {
-                                    entreX = i;
-                                    entreY = j;
+    private void placeEntryDoors(Coordonnee doorPlace){
+        entreX = UnityEngine.Random.Range((1 + (doorPlace.getX() * 10)), (((doorPlace.getX()+1) * 10)-1));
+        entreY = UnityEngine.Random.Range((2 + (doorPlace.getY()) * 8), (((doorPlace.getY()+1) * 8) - 1));
+        level[entreX, entreY] = BlocConstant.ENTER_NUMBER;
+        level[entreX, entreY + 1] = BlocConstant.BLOC_NUMBER;
+    }
 
-                                } else if (nbDoor == 2) {
-                                    sortieX = i;
-                                    sortieY = j;
+    private void placeExitDoors(Coordonnee doorPlace)
+    {
+        sortieX = UnityEngine.Random.Range((1 + (doorPlace.getX() * 10)), (((doorPlace.getX() + 1) * 10) - 1));
+        sortieY = UnityEngine.Random.Range((2 + (doorPlace.getY()) * 8), (((doorPlace.getY() + 1) * 8) - 1));
+        level[sortieX, sortieY] = BlocConstant.EXIT_NUMBER;
+        level[sortieX, sortieY + 1] = BlocConstant.BLOC_NUMBER;
+    }
 
-                                }
-                            }
-                        }
-                    }
+    private List<Coordonnee> getVoisinAtSomeDistance(int[,] map, int mapWidth, int mapHeight, Coordonnee startPoint, double distance, int forJump) {
+        List<Coordonnee> result = new List<Coordonnee>();
+
+        for (int i = 0; i < mapWidth; i++)
+        {
+            for (int j = 0; j < mapHeight; j++)
+            {
+                Coordonnee distantePoint = new Coordonnee(i, j);
+                double distanceCalcule = startPoint.getDistance(distantePoint);
+                if (distanceCalcule <= distance && map[i, j] == forJump && distanceCalcule != 0)
+                {
+                    result.Add(distantePoint);
                 }
             }
-            Debug.Log("nbDoor : " + nbDoor);
-        } while (nbDoor < 2);
+        }
+
+        return result;
+    }
+
+    private List<Coordonnee> getNotVoisinAtSomeDistance(int[,] map, int mapWidth, int mapHeight, Coordonnee startPoint, double distance, int forJump)
+    {
+        List<Coordonnee> result = new List<Coordonnee>();
+
+        for (int i = 0; i < mapWidth; i++)
+        {
+            for (int j = 0; j < mapHeight; j++)
+            {
+                Coordonnee distantePoint = new Coordonnee(i, j);
+                double distanceCalcule = startPoint.getDistance(distantePoint);
+                if (distanceCalcule > distance && map[i, j] == forJump)
+                {
+                    result.Add(distantePoint);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private int[,] doSimulationStep(int[,] map)
+    {
+        int[,] newMap = new int[width, height];
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                int nbsAlive = countAliveNeighbours(map, i, j);
+                if ((i == 0) || (j == 0) || (i == width - 1) || (j == height - 1))
+                {
+                    newMap[i, j] = BlocConstant.BLOC_NUMBER;
+                }else if(((i == entreX)&&(j == entreY +1))||((i== sortieX)&&(j==sortieY + 1))){
+                    newMap[i, j] = BlocConstant.BLOC_NUMBER;
+                }else if (map[i, j] == BlocConstant.ENTER_NUMBER) {
+                    newMap[i, j] = BlocConstant.ENTER_NUMBER;
+                }
+                else if (map[i, j] == BlocConstant.EXIT_NUMBER)
+                {
+                    newMap[i, j] = BlocConstant.EXIT_NUMBER;
+                }
+                else if (getVoisinAtSomeDistance(map, width, height, new Coordonnee(i, j), 2, 1).Count == 0)
+                {
+                    newMap[i,j] = BlocConstant.BLOC_NUMBER;
+                }
+                else if (map[i, j] == 1)
+                {
+                    if (nbsAlive < deathLimit) newMap[i, j] = 0;
+                    else newMap[i, j] = BlocConstant.BLOC_NUMBER;
+                }
+                else if (map[i, j] == 0)
+                {
+                    if (nbsAlive > birthLimit) newMap[i, j] = BlocConstant.BLOC_NUMBER;
+                    else newMap[i, j] = 0;
+                }
+            }
+        }
+
+        return newMap;
+    }
+
+    private int countAliveNeighbours(int[,] map, int x, int y)
+    {
+        int count = 0;
+        for (int i = -1; i < 2; i++)
+        {
+            for (int j = -1; j < 2; j++)
+            {
+                int neighbour_x = x + i;
+                int neighbour_y = y + j;
+
+                if (i == 0 && j == 0)
+                {
+                }
+                else if (neighbour_x < 0 || neighbour_y < 0 || neighbour_x >= width  || neighbour_y >= height )
+                {
+                    count++;
+                }
+                else if (map[neighbour_x, neighbour_y] == 1)
+                {
+                    count++;
+                }
+            }
+        }
+
+        return count;
 
     }
-	
-
 }
