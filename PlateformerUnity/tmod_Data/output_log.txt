@@ -19,8 +19,8 @@ desktop: 1920x1080 60Hz; virtual: 1920x1080 at 0,0
 <RI> Initialized touch support.
 Platform assembly: E:\Unity\Projet\PlateformerUnityMotD\PlateformerUnity\tmod_Data\Managed\System.Core.dll (this message is harmless)
 Unloading 2 Unused Serialized files (Serialized files now loaded: 0)
-UnloadTime: 0.414652 ms
+UnloadTime: 0.386734 ms
 
-Unloading 9 unused Assets to reduce memory usage. Loaded Objects now: 150.
-Total: 0.153954 ms (FindLiveObjects: 0.014779 ms CreateObjectMapping: 0.010674 ms MarkObjects: 0.115363 ms  DeleteObjects: 0.011905 ms)
+Unloading 9 unused Assets to reduce memory usage. Loaded Objects now: 152.
+Total: 0.151080 ms (FindLiveObjects: 0.016832 ms CreateObjectMapping: 0.010263 ms MarkObjects: 0.112900 ms  DeleteObjects: 0.010674 ms)
 
