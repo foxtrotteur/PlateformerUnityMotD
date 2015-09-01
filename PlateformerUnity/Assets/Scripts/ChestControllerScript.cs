@@ -4,6 +4,7 @@ using System.Collections;
 public class ChestControllerScript : MonoBehaviour {
 
     Animator anim;
+    public bool isOpened = false;
 
 	// Use this for initialization
 	void Start () {
@@ -17,8 +18,13 @@ public class ChestControllerScript : MonoBehaviour {
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.gameObject.tag == "Player") { 
-            anim.Play("Chest_Opening");
+        if (!isOpened)
+        {
+            if (other.gameObject.tag == "Player")
+            {
+                anim.Play("Chest_Opening");
+                isOpened = true;
+            }
         }
     }
 }
