@@ -5,7 +5,7 @@
     public const int EXIT_NUMBER = 3;
 
     public const string BLOC_NAME = "prefabBloc_13";
-    public const string ENTER_NAME = "exitPrefab";
+    public const string ENTER_NAME = "entryPrefab";
     public const string EXIT_NAME = "exitPrefab";
 }
 
